@@ -1,0 +1,163 @@
+<style>
+    body {
+        background-color: black;
+    }
+</style>
+
+<canvas></canvas>
+
+<script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = 1024;
+    canvas.height = 756;
+
+    class Finco {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        draw() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(this.x, this.y, 5, 5);
+            ctx.fillRect(this.x - 5, this.y + 5, 15, 5);
+            ctx.fillRect(this.x - 10, this.y + 10, 25, 5);
+            ctx.fillRect(this.x - 15, this.y + 15, 35, 5);
+            ctx.fillRect(this.x - 20, this.y + 20, 45, 5);
+        }
+    }
+
+    class Morto {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.size = 50;
+        }
+
+        draw() {
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+    }
+
+    class Personagem {
+        constructor() {
+            this.x = 10;
+            this.size = 50;
+            this.baseY = 535;
+            this.y = this.baseY;
+            this.speed = 10;
+
+            this.lefting = false;
+            this.righting = false;
+            this.jumping = false;
+
+            this.releaseJump = true;
+            this.elapsedJumping = 0;
+            this.timeJump = 10;
+            this.heightJump = 100;
+        }
+
+        draw() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+
+        jump() {
+            if (this.releaseJump && this.y == this.baseY) {
+                this.jumping = true;
+                this.releaseJump = false;
+            }
+        }
+
+        update() {
+            this.draw();
+
+            if (this.lefting && this.x > 0)
+                this.x -= this.speed
+            if (this.righting && this.x < (canvas.width - this.size))
+                this.x += this.speed
+            if (this.jumping) {
+                if (this.elapsedJumping < this.timeJump) {
+                    if (this.y > this.baseY - this.heightJump)
+                        this.y -= this.heightJump / this.timeJump;
+                    this.elapsedJumping++;
+                }
+                else
+                    this.jumping = false
+            }
+            else {
+                if (this.elapsedJumping <= this.timeJump) {
+                    if (this.y < this.baseY) {
+                        this.y += this.heightJump / this.timeJump;
+                        this.elapsedJumping--;
+                    }
+                }
+
+
+            }
+
+        }
+    }
+
+    const mortos = [];
+    const p = new Personagem();
+    const fincos = [
+        new Finco(canvas.width / 2 - 90, 560),
+        new Finco(canvas.width / 2, 560),
+        new Finco(canvas.width / 2 + 40, 560),
+        new Finco(canvas.width / 2 + 80, 560)
+    ];
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.beginPath()
+        ctx.moveTo(0, 600);
+        ctx.strokeStyle = "green";
+        ctx.lineWidth = 30;
+        ctx.lineTo(canvas.width, 600);
+        ctx.stroke();
+
+        p.update()
+        mortos.forEach(x => x.draw());
+        fincos.forEach(x => x.draw());
+    }
+
+    animate();
+
+    window.addEventListener('keydown', (e) => {
+        switch (event.code) {
+            case "ArrowLeft":
+                p.lefting = true;
+                break;
+            case "ArrowRight":
+                p.righting = true;
+                break;
+            case "ArrowUp":
+                p.jump()
+                break;
+            case "Space":
+                mortos.push(new Morto(p.x, p.y))
+                break;
+        }
+    })
+    window.addEventListener('keyup', (e) => {
+        switch (event.key) {
+            case "ArrowLeft":
+                p.lefting = false;
+                break;
+            case "ArrowRight":
+                p.righting = false;
+                break;
+            case "ArrowUp":
+                p.releaseJump = true;
+                break;
+        }
+    })
+</script>

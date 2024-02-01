@@ -21,7 +21,7 @@
             this.spawnElapsed = 0;
 
             const abertura = 150
-            const posicaoDeCorte = (Math.random() * canvas.height / 3) + canvas.height / 3;
+            const posicaoDeCorte = (Math.random() * abertura) + canvas.height / 2 - abertura;
             this.pipeSuperior = posicaoDeCorte - abertura / 2
             this.pipeInverior = posicaoDeCorte + abertura / 2
         }

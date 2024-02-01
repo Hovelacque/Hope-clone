@@ -47,18 +47,13 @@
             this.baseX = 10;
             this.x = this.baseX;
             this.size = 50;
-            this.baseY = 535;
+            this.baseY = 100//535;
             this.y = this.baseY;
-            this.speed = 10;
 
-            this.lefting = false;
-            this.righting = false;
-            this.jumping = false;
-
-            this.releaseJump = true;
-            this.elapsedJumping = 0;
-            this.timeJump = 10;
-            this.heightJump = 100;
+            this.velocity = {
+                x: 0,
+                y: 0
+            }
         }
 
         draw() {
@@ -66,51 +61,79 @@
             ctx.fillRect(this.x, this.y, this.size, this.size);
         }
 
-        jump() {
-            if (this.releaseJump && this.y == this.baseY) {
-                this.jumping = true;
-                this.releaseJump = false;
-            }
-        }
-
         update() {
             this.draw();
 
-            if (this.lefting && this.x > 0)
-                this.x -= this.speed
-            if (this.righting && this.x < (canvas.width - this.size))
-                this.x += this.speed
-            if (this.jumping) {
-                if (this.elapsedJumping < this.timeJump) {
-                    if (this.y > this.baseY - this.heightJump)
-                        this.y -= this.heightJump / this.timeJump;
-                    this.elapsedJumping++;
-                }
-                else
-                    this.jumping = false
-            }
-            else {
-                if (this.elapsedJumping <= this.timeJump) {
-                    if (this.y < this.baseY) {
-                        this.y += this.heightJump / this.timeJump;
-                        this.elapsedJumping--;
+            this.x += this.velocity.x;
+
+            this.checkForHorizontalCollision();
+            this.appluGravity();
+            this.checkForVerticalCollision()
+        }
+
+        checkForHorizontalCollision() {
+            mortos.forEach(corpo => {
+                if (this.collision(this, corpo)) {
+                    if (this.velocity.x > 0) {
+                        this.velocity.x = 0
+                        this.x = corpo.x - this.size - 0.01
+                    }
+                    if (this.velocity.x < 0) {
+                        this.velocity.x = 0
+                        this.x = corpo.x + corpo.size + 0.01
                     }
                 }
+            })
+        }
 
+        appluGravity() {
+            this.y += this.velocity.y;
+            if (this.y + this.size + this.velocity.y <= yChao)
+                this.velocity.y += gravity;
+            else
+                this.velocity.y = 0
+        }
 
-            }
+        checkForVerticalCollision() {
+            mortos.forEach(corpo => {
+                if (this.collision(this, corpo)) {
+                    if (this.velocity.y > 0) {
+                        this.velocity.y = 0
+                        this.y = corpo.y - this.size - 0.01
+                    }
+                    if (this.velocity.y < 0) {
+                        this.velocity.y = 0
+                        this.y = corpo.y + corpo.size + 0.01
+                    }
+                }
+            })
+        }
 
+        collision(object1, object2) {
+            return (
+                object1.y + object1.size >= object2.y &&
+                object1.y <= object2.y + object2.size &&
+                object1.x <= object2.x + object2.size &&
+                object1.x + object1.size >= object2.x
+            );
         }
     }
 
     const mortos = [];
-    const p = new Personagem();
+    const player = new Personagem();
     const fincos = [
         new Finco(canvas.width / 2 - 90, 560),
         new Finco(canvas.width / 2, 560),
         new Finco(canvas.width / 2 + 40, 560),
         new Finco(canvas.width / 2 + 80, 560)
     ];
+    const movimentos = {
+        left: false,
+        right: false,
+        jump: false
+    }
+    const gravity = 0.5;
+    const yChao = 585;
 
     function animate() {
         requestAnimationFrame(animate);
@@ -125,24 +148,17 @@
         ctx.lineTo(canvas.width, 600);
         ctx.stroke();
 
-
         mortos.forEach(corpo => {
-            if (p.x + p.size >= corpo.x &&
-                p.x <= corpo.x + corpo.size &&
-                p.y + p.size >= corpo.y &&
-                p.y <= corpo.y + corpo.size
-            ) {
-                p.lefting = false;
-                p.righting = false;
-            }
-
-
             corpo.draw()
         });
 
-        p.update()
+        player.update()
 
         fincos.forEach(x => x.draw());
+
+        player.velocity.x = 0;
+        if (movimentos.left) player.velocity.x = -10
+        else if (movimentos.right) player.velocity.x = 10
     }
 
     animate();
@@ -150,31 +166,28 @@
     window.addEventListener('keydown', (e) => {
         switch (event.code) {
             case "ArrowLeft":
-                p.lefting = true;
+                movimentos.left = true;
                 break;
             case "ArrowRight":
-                p.righting = true;
+                movimentos.right = true;
                 break;
             case "ArrowUp":
-                p.jump()
+                player.velocity.y = -10
                 break;
             case "Space":
-                mortos.push(new Morto(p.x, p.y))
-                p.x = p.baseX;
-                p.y = p.baseY;
+                mortos.push(new Morto(player.x, player.y))
+                player.x = player.baseX;
+                player.y = player.baseY;
                 break;
         }
     })
     window.addEventListener('keyup', (e) => {
         switch (event.key) {
             case "ArrowLeft":
-                p.lefting = false;
+                movimentos.left = false;
                 break;
             case "ArrowRight":
-                p.righting = false;
-                break;
-            case "ArrowUp":
-                p.releaseJump = true;
+                movimentos.right = false;
                 break;
         }
     })

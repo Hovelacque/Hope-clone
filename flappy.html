@@ -1,0 +1,124 @@
+<style>
+    body {
+        background-color: black;
+    }
+</style>
+
+<canvas></canvas>
+
+<script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = 1024;
+    canvas.height = 756;
+
+    class Pipe {
+        constructor() {
+            this.width = 50;
+            this.x = 200//canvas.width - this.width - 50;
+            this.velocity = 3;
+        }
+
+        draw() {
+            ctx.fillStyle = 'gray';
+            const halfHeight = canvas.height / 2;
+            ctx.fillRect(this.x, 0, this.width, halfHeight - 150);
+
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(this.x, halfHeight, this.width, canvas.height / 2);
+        }
+
+        update() {
+            this.draw();
+            this.x -= this.velocity;
+            this.checkCollision();
+        }
+
+        checkCollision() {
+            const halfHeight = canvas.height / 2;
+            // object1.y + object1.size >= player.y &&
+            //     object1.y <= player.y + player.size &&
+            //     object1.x <= player.x + player.size &&
+            //     this.x + this.width >= player.x
+            if (
+                halfHeight - 150 >= player.y &&
+                this.x <= player.x + player.size &&
+                this.x + this.width >= player.x
+            ) {
+                gameover = true;
+            }
+        }
+    }
+
+    class Personagem {
+        constructor() {
+            this.baseX = 10;
+            this.x = this.baseX;
+            this.size = 50;
+            this.baseY = 100//535;
+            this.y = this.baseY;
+
+            this.velocity = {
+                x: 0,
+                y: 0
+            }
+        }
+
+        draw() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+
+        update() {
+            this.draw();
+
+            this.x += this.velocity.x;
+
+            this.appluGravity();
+        }
+
+        appluGravity() {
+            this.y += this.velocity.y;
+            if (this.y + this.size + this.velocity.y <= canvas.height)
+                this.velocity.y += gravity;
+            else
+                this.velocity.y = 0
+        }
+
+        jump() {
+            const forceJump = -10
+            if (this.y + this.velocity.y > 0)
+                player.velocity.y = forceJump
+        }
+    }
+
+    const pipes = [
+        new Pipe()
+    ];
+    const player = new Personagem();
+    const gravity = 0.5;
+    let gameover = false
+
+    function animate() {
+        if (!gameover)
+            requestAnimationFrame(animate);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        pipes.forEach(item => item.update());
+
+        player.update()
+    }
+
+    animate();
+
+    window.addEventListener('keydown', (e) => {
+        switch (event.code) {
+            case "ArrowUp":
+                player.jump();
+                break;
+        }
+    })
+</script>

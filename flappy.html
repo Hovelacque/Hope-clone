@@ -1,0 +1,162 @@
+<style>
+    body {
+        background-color: black;
+    }
+</style>
+
+<canvas></canvas>
+
+<script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = window.innerWidth - 100; //1024;
+    canvas.height = window.innerHeight - 100; //756;
+
+    class Pipe {
+        constructor() {
+            this.width = 50;
+            this.x = canvas.width - this.width;
+            this.velocity = 3;
+            this.spawnElapsed = 0;
+
+            const abertura = 150
+            const posicaoDeCorte = (Math.random() * abertura) + canvas.height / 2 - abertura;
+            this.pipeSuperior = posicaoDeCorte - abertura / 2
+            this.pipeInverior = posicaoDeCorte + abertura / 2
+        }
+
+        draw() {
+            ctx.fillStyle = 'gray';
+            const halfHeight = canvas.height / 2;
+            ctx.fillRect(this.x, 0, this.width, this.pipeSuperior);
+
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(this.x, this.pipeInverior, this.width, canvas.height - this.pipeInverior);
+        }
+
+        update() {
+            this.draw();
+            this.x -= this.velocity;
+            this.checkCollision();
+
+            this.spawnElapsed++;
+            if (this.spawnElapsed == 150)
+                pipes.push(new Pipe())
+        }
+
+        checkCollision() {
+            if (
+                (
+                    this.pipeSuperior >= player.y ||
+                    this.pipeInverior <= player.y + player.size
+                ) &&
+                this.x <= player.x + player.size &&
+                this.x + this.width >= player.x
+            )
+                gameover = true;
+        }
+    }
+
+    class Personagem {
+        constructor() {
+            this.x = 50;
+            this.size = 50;
+            this.y = 100
+
+            this.velocity = {
+                y: 0
+            }
+        }
+
+        draw() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+
+        update() {
+            this.draw();
+            this.appluGravity();
+        }
+
+        appluGravity() {
+            this.y += this.velocity.y;
+            if (this.y + this.size + this.velocity.y <= canvas.height)
+                this.velocity.y += gravity;
+            else
+                gameover = true
+        }
+
+        jump() {
+            const forceJump = -10
+            if (this.y + this.velocity.y > 0)
+                player.velocity.y = forceJump
+        }
+    }
+
+    const pipes = [new Pipe()];
+    const player = new Personagem();
+    const gravity = 0.5;
+    let running = false
+    let gameover = false;
+    let pontos = 0;
+
+    function animate() {
+        if (!gameover)
+            requestAnimationFrame(animate);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        pipes.forEach(item => item.update());
+
+        player.update();
+
+        ctx.font = "30px Arial";
+        ctx.fillText(`Pontos: ${pontos}`, 10, 50);
+    }
+
+    function start() {
+        pipes.push(new Pipe())
+        animate();
+        running = true;
+    }
+
+    function click() {
+        if (running)
+            player.jump();
+        else
+            start()
+    }
+
+    window.addEventListener('keydown', (e) => {
+        switch (event.code) {
+            case "ArrowUp":
+            case "Space":
+            case "w":
+            case "W":
+                click()
+                break;
+        }
+    })
+    canvas.addEventListener("click", () => { click() }, false);
+    canvas.addEventListener("touchstart", () => { click() }, false);
+
+    function showMenu() {
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = 'black';
+        ctx.font = "50px Arial";
+
+        const texto1 = 'Clica para começar'
+        let larguraTexto1 = ctx.measureText(texto1).width;
+        ctx.fillText(texto1, canvas.width / 2 - larguraTexto1 / 2, canvas.height / 2);
+
+        ctx.font = "35px Arial";
+        const texto2 = 'use W, Espaço, ↑, Clique ou toque para pular 😜'
+        let larguraTexto2 = ctx.measureText(texto2).width;
+        ctx.fillText(texto2, canvas.width / 2 - larguraTexto2 / 2, canvas.height / 2 + 55);
+    }
+    showMenu();
+</script>

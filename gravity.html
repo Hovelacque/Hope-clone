@@ -1,0 +1,194 @@
+<style>
+    body {
+        background-color: black;
+    }
+</style>
+
+<canvas></canvas>
+
+<script>
+    const canvas = document.querySelector('canvas');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = 1024;
+    canvas.height = 756;
+
+    class Finco {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        draw() {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(this.x, this.y, 5, 5);
+            ctx.fillRect(this.x - 5, this.y + 5, 15, 5);
+            ctx.fillRect(this.x - 10, this.y + 10, 25, 5);
+            ctx.fillRect(this.x - 15, this.y + 15, 35, 5);
+            ctx.fillRect(this.x - 20, this.y + 20, 45, 5);
+        }
+    }
+
+    class Morto {
+        constructor(x, y) {
+            this.x = x;
+            this.y = y;
+            this.size = 50;
+        }
+
+        draw() {
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+    }
+
+    class Personagem {
+        constructor() {
+            this.baseX = 10;
+            this.x = this.baseX;
+            this.size = 50;
+            this.baseY = 100//535;
+            this.y = this.baseY;
+
+            this.velocity = {
+                x: 0,
+                y: 0
+            }
+        }
+
+        draw() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(this.x, this.y, this.size, this.size);
+        }
+
+        update() {
+            this.draw();
+
+            this.x += this.velocity.x;
+
+            this.checkForHorizontalCollision();
+            this.appluGravity();
+            this.checkForVerticalCollision()
+        }
+
+        checkForHorizontalCollision() {
+            mortos.forEach(corpo => {
+                if (this.collision(this, corpo)) {
+                    if (this.velocity.x > 0) {
+                        this.velocity.x = 0
+                        this.x = corpo.x - this.size - 0.01
+                    }
+                    if (this.velocity.x < 0) {
+                        this.velocity.x = 0
+                        this.x = corpo.x + corpo.size + 0.01
+                    }
+                }
+            })
+        }
+
+        appluGravity() {
+            this.y += this.velocity.y;
+            if (this.y + this.size + this.velocity.y <= yChao)
+                this.velocity.y += gravity;
+            else
+                this.velocity.y = 0
+        }
+
+        checkForVerticalCollision() {
+            mortos.forEach(corpo => {
+                if (this.collision(this, corpo)) {
+                    if (this.velocity.y > 0) {
+                        this.velocity.y = 0
+                        this.y = corpo.y - this.size - 0.01
+                    }
+                    if (this.velocity.y < 0) {
+                        this.velocity.y = 0
+                        this.y = corpo.y + corpo.size + 0.01
+                    }
+                }
+            })
+        }
+
+        collision(object1, object2) {
+            return (
+                object1.y + object1.size >= object2.y &&
+                object1.y <= object2.y + object2.size &&
+                object1.x <= object2.x + object2.size &&
+                object1.x + object1.size >= object2.x
+            );
+        }
+    }
+
+    const mortos = [];
+    const player = new Personagem();
+    const fincos = [
+        new Finco(canvas.width / 2 - 90, 560),
+        new Finco(canvas.width / 2, 560),
+        new Finco(canvas.width / 2 + 40, 560),
+        new Finco(canvas.width / 2 + 80, 560)
+    ];
+    const movimentos = {
+        left: false,
+        right: false,
+        jump: false
+    }
+    const gravity = 0.5;
+    const yChao = 585;
+
+    function animate() {
+        requestAnimationFrame(animate);
+
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.beginPath()
+        ctx.moveTo(0, 600);
+        ctx.strokeStyle = "green";
+        ctx.lineWidth = 30;
+        ctx.lineTo(canvas.width, 600);
+        ctx.stroke();
+
+        mortos.forEach(corpo => {
+            corpo.draw()
+        });
+
+        player.update()
+
+        fincos.forEach(x => x.draw());
+
+        player.velocity.x = 0;
+        if (movimentos.left) player.velocity.x = -10
+        else if (movimentos.right) player.velocity.x = 10
+    }
+
+    animate();
+
+    window.addEventListener('keydown', (e) => {
+        switch (event.code) {
+            case "ArrowLeft":
+                movimentos.left = true;
+                break;
+            case "ArrowRight":
+                movimentos.right = true;
+                break;
+            case "ArrowUp":
+                player.velocity.y = -10
+                break;
+            case "Space":
+                mortos.push(new Morto(player.x, player.y))
+                player.x = player.baseX;
+                player.y = player.baseY;
+                break;
+        }
+    })
+    window.addEventListener('keyup', (e) => {
+        switch (event.key) {
+            case "ArrowLeft":
+                movimentos.left = false;
+                break;
+            case "ArrowRight":
+                movimentos.right = false;
+                break;
+        }
+    })
+</script>

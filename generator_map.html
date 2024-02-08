@@ -1,8 +1,14 @@
+<style>
+    body {
+        margin: 0;
+    }
+</style>
+
 <canvas></canvas>
 
 <script src="mapa1.js"></script>
 <script>
-    const canvas = document.querySelector('canvas');
+    const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext('2d');
 
     const sizeTile = 20;
@@ -30,7 +36,7 @@
             //     }
             //     this.matriz.push([...linha]);
             // }
-            this.matriz = mapa1;
+            this.matriz = mapa;
         }
 
         isMouseOver(x, y) {

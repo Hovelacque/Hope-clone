@@ -53,7 +53,7 @@
             this.baseX = 10;
             this.x = this.baseX;
             this.size = 50;
-            this.baseY = 100//535;
+            this.baseY = canvas.height - this.size;//100//535;
             this.y = this.baseY;
             this.jumps = 0;
             this.velocity = {
@@ -137,8 +137,8 @@
     }
 
     const player = new Personagem();
-    const blocos = [];
     const fincos = [];
+    const blocos = [];
     const movimentos = {
         left: false,
         right: false,
@@ -152,9 +152,9 @@
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        blocos.forEach(x => x.draw());
         fincos.forEach(x => x.draw());
-
+        blocos.forEach(x => x.draw());
+        
         player.update()
 
         player.velocity.x = 0;

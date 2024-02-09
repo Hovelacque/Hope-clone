@@ -5,6 +5,7 @@
 </style>
 
 <canvas></canvas>
+<button onclick="download()">download</button>
 
 <script src="mapa1.js"></script>
 <script>
@@ -171,4 +172,9 @@
     window.addEventListener('keyup', (event) => {
         mouse.acao = undefined
     })
+
+    function download() {
+        let m = JSON.stringify(fundo.matriz)
+        console.log(m)
+    }
 </script>

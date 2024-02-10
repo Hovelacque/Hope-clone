@@ -60,12 +60,16 @@
         constructor(x, y) {
             this.x = x;
             this.y = y;
-            this.size = sizeTile;
+            this.width = sizeTile;
+            this.height = sizeTile;
         }
 
         draw() {
             ctx.fillStyle = "blue";
-            ctx.fillRect(this.x, this.y, this.size, this.size);
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+    }
+
     class Flag {
         constructor() {
             this.x = undefined;
@@ -105,11 +109,12 @@
 
     class Personagem {
         constructor() {
-            this.baseX = 10;
-            this.x = this.baseX;
-            this.size = 50;
-            this.baseY = canvas.height - this.size;//100//535;
-            this.y = this.baseY;
+            this.startX = 10;
+            this.x = this.startX;
+            this.height = sizeTile * 1.5;
+            this.width = sizeTile * 1.5;
+            this.startY = canvas.height - this.height;
+            this.y = this.startY;
             this.jumps = 0;
             this.velocity = {
                 x: 0,
@@ -119,7 +124,7 @@
 
         draw() {
             ctx.fillStyle = 'green';
-            ctx.fillRect(this.x, this.y, this.size, this.size);
+            ctx.fillRect(this.x, this.y, this.width, this.height);
         }
 
         update() {
@@ -134,7 +139,7 @@
 
         jump() {
             if (this.jumps < 2) {
-                this.velocity.y = -10
+                this.velocity.y = -sizeTile / 2
                 this.jumps++;
             }
         }
@@ -153,11 +158,14 @@
                 if (this.collision(this, item)) {
                     if (this.velocity.x > 0) {
                         this.velocity.x = 0
-                        this.x = item.x - this.size - 0.01
+                        this.x = item.x - this.width - 0.01
                     }
                     if (this.velocity.x < 0) {
                         this.velocity.x = 0
-                        this.x = item.x + item.size + 0.01
+                        this.x = item.x + item.width + 0.01
+                    }
+                }
+            })
             mortos.forEach(item => {
                 if (this.collision(this, item)) {
                     if (this.velocity.x > 0) {
@@ -174,7 +182,7 @@
 
         appluGravity() {
             this.y += this.velocity.y;
-            if (this.y + this.size + this.velocity.y <= canvas.height)
+            if (this.y + this.height + this.velocity.y <= canvas.height)
                 this.velocity.y += gravity;
             else {
                 this.jumps = 0;
@@ -188,7 +196,14 @@
                     if (this.velocity.y > 0) {
                         this.velocity.y = 0;
                         this.jumps = 0;
-                        this.y = item.y - this.size - 0.01
+                        this.y = item.y - this.height - 0.01
+                    }
+                    if (this.velocity.y < 0) {
+                        this.velocity.y = 0
+                        this.y = item.y + item.height + 0.01
+                    }
+                }
+            })
             mortos.forEach(item => {
                 if (this.collision(this, item)) {
                     if (this.velocity.y > 0) {
@@ -199,7 +214,7 @@
                     if (this.velocity.y < 0) {
                         this.velocity.y = 0
                         this.jumps = 0;
-                        this.y = item.y + item.size + 0.01
+                        this.y = item.y + item.height + 0.01
                     }
                 }
             })
@@ -207,10 +222,10 @@
 
         collision(object1, object2) {
             return (
-                object1.y + object1.size >= object2.y &&
-                object1.y <= object2.y + object2.size &&
-                object1.x <= object2.x + object2.size &&
-                object1.x + object1.size >= object2.x
+                object1.y + object1.height >= object2.y &&
+                object1.y <= object2.y + object2.height &&
+                object1.x <= object2.x + object2.width &&
+                object1.x + object1.width >= object2.x
             );
         }
     }
@@ -251,16 +266,17 @@
         blocos.forEach(x => x.draw());
         mortos.forEach(x => x.draw());
         bandeira.draw();
+
         player.update()
 
         player.velocity.x = 0;
         if (movimentos.left && player.x > 0)
-            player.velocity.x = -10
+            player.velocity.x = -sizeTile / 2
         else if (
             movimentos.right &&
-            (player.x + player.size < canvas.width)
+            (player.x + player.width < canvas.width)
         )
-            player.velocity.x = 10
+            player.velocity.x = sizeTile / 2
     }
 
     function startMap() {

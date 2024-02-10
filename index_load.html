@@ -5,6 +5,7 @@
 </style>
 
 <canvas></canvas>
+<input type="file" id="fileInput" accept=".js">
 
 <script src="mapa1.js"></script>
 <script>
@@ -174,13 +175,17 @@
             }
         }
 
-        die() {
-            mortos.push(new Morto(this.x, this.y, this.width, this.height));
+        reset() {
             this.velocity.x = 0;
             this.velocity.y = 0;
             this.jumps = 0;
             this.x = this.startX;
             this.y = this.startY;
+        }
+
+        die() {
+            mortos.push(new Morto(this.x, this.y, this.width, this.height));
+            this.reset()
         }
 
         checkForHorizontalCollision() {
@@ -275,9 +280,9 @@
     }
 
     const player = new Personagem();
-    const fincos = [];
-    const blocos = [];
-    const mortos = [];
+    let fincos = [];
+    let blocos = [];
+    let mortos = [];
     const bandeira = new Flag();
     const movimentos = {
         left: false,
@@ -313,12 +318,17 @@
         bandeira.update();
     }
 
-    function startMap() {
-        if (!mapa)
+    function startMap(newMapa) {
+        if (!newMapa)
             return;
 
-        for (let i = 0; i < mapa.length; i++) {
-            let linha = mapa[i];
+        player.reset();
+        blocos = [];
+        fincos = [];
+        mortos = [];
+
+        for (let i = 0; i < newMapa.length; i++) {
+            let linha = newMapa[i];
             for (let j = 0; j < linha.length; j++) {
                 const x = j * sizeTile;
                 const y = i * sizeTile;
@@ -364,9 +374,28 @@
             }
         })
 
+
         gameover = false;
         animate();
     }
 
-    startMap()
+    const upload = document.getElementById('fileInput');
+    if (upload) {
+        upload.addEventListener('change', function () {
+            if (upload.files.length > 0) {
+                var reader = new FileReader();
+                reader.addEventListener('load', function () {
+                    const matrizJson = reader.result.replace('const mapa = ', '').replace(';', '')
+                    var result = JSON.parse(matrizJson);
+                    startMap(result)
+                    upload.value = '';
+                });
+
+                reader.readAsText(upload.files[0]); // Read the uploaded file
+            }
+        });
+    }
+
+
+    startMap(mapa)
 </script>

@@ -27,11 +27,32 @@
 
         draw() {
             ctx.fillStyle = 'red';
-            ctx.fillRect(this.x, this.y, 5, 5);
-            ctx.fillRect(this.x - 5, this.y + 5, 15, 5);
-            ctx.fillRect(this.x - 10, this.y + 10, 25, 5);
-            ctx.fillRect(this.x - 15, this.y + 15, 35, 5);
-            ctx.fillRect(this.x - 20, this.y + 20, 45, 5);
+            ctx.fillRect(this.x + sizeTile / 2 - sizeTile / 8, this.y, sizeTile / 4, sizeTile / 4);
+            ctx.fillRect(this.x + sizeTile / 4, this.y + sizeTile / 4, sizeTile - sizeTile / 2, sizeTile / 4);
+            ctx.fillRect(this.x + sizeTile / 8, this.y + sizeTile / 2, sizeTile - sizeTile / 4, sizeTile / 4);
+            ctx.fillRect(this.x, this.y + sizeTile - sizeTile / 4, sizeTile, sizeTile / 4);
+        }
+
+        update() {
+            this.draw()
+
+            if (
+                this.collision(this.x + sizeTile / 2 - sizeTile / 8, this.y, sizeTile / 4, sizeTile / 4) ||
+                this.collision(this.x + sizeTile / 4, this.y + sizeTile / 4, sizeTile - sizeTile / 2, sizeTile / 4) ||
+                this.collision(this.x + sizeTile / 8, this.y + sizeTile / 2, sizeTile - sizeTile / 4, sizeTile / 4) ||
+                this.collision(this.x, this.y + sizeTile - sizeTile / 4, sizeTile, sizeTile / 4)
+            ) {
+                player.die();
+            }
+        }
+
+        collision(x, y, width, height) {
+            return (
+                player.y + player.height >= y &&
+                player.y <= y + height &&
+                player.x <= x + width &&
+                player.x + player.width >= x
+            );
         }
     }
 

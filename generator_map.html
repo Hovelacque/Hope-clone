@@ -6,6 +6,7 @@
 
 <canvas></canvas>
 <button onclick="download()">download</button>
+<input type="file" id="fileInput" accept=".js">
 
 <script src="mapa1.js"></script>
 <script>
@@ -27,7 +28,9 @@
     }
 
     class Fundo {
-        constructor() {
+        constructor() { }
+
+        init(mapa) {
             this.matriz = mapa;
             this.posicaoBandeira = {
                 flag: {
@@ -201,15 +204,12 @@
         // a2.draw()
     }
 
-    animate();
-
     window.addEventListener('mousemove', (e) => {
         mouse.x = e.clientX;
         mouse.y = e.clientY;
     })
 
     window.addEventListener('keydown', (event) => {
-        console.log(event);
         switch (event.code) {
             case "KeyA":
                 mouse.acao = "apagar";
@@ -229,8 +229,39 @@
         mouse.acao = undefined
     })
 
-    function download() {
-        let m = JSON.stringify(fundo.matriz)
-        console.log(m)
+    const upload = document.getElementById('fileInput');
+    if (upload) {
+        upload.addEventListener('change', function () {
+            if (upload.files.length > 0) {
+                var reader = new FileReader();
+                reader.addEventListener('load', function () {
+                    const matrizJson = reader.result.replace('const mapa = ','').replace(';','')
+                    var result = JSON.parse(matrizJson); 
+                    fundo.init(result);
+                    upload.value = '';
+                });
+
+                reader.readAsText(upload.files[0]); // Read the uploaded file
+            }
+        });
     }
+
+    function download() {
+        const data = `const mapa = ${JSON.stringify(fundo.matriz)}`;
+        var dataStr = "data:text/js;charset=utf-8," + encodeURIComponent(data);
+        var element = document.createElement('a');
+        element.setAttribute('href', dataStr);
+        element.setAttribute('download', 'mapa.js');
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }
+
+    function start() {
+        fundo.init(mapa)
+        animate();
+    }
+
+    start();
 </script>

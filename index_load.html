@@ -309,7 +309,7 @@
             )
                 player.velocity.x = sizeTile / 2
         }
-        
+
         bandeira.update();
     }
 
@@ -342,6 +342,14 @@
                     break;
                 case "ArrowUp":
                     player.jump();
+                    break;
+                case "KeyS":
+                    if (mortos.length > 0)
+                        mortos.splice(mortos.length - 1, 1)
+                    break;
+                case "KeyA":
+                    if (mortos.length > 0)
+                        mortos.splice(0, 1)
                     break;
             }
         })

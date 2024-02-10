@@ -139,6 +139,15 @@
             }
         }
 
+        die() {
+            mortos.push(new Morto(this.x, this.y, this.width, this.height));
+            this.velocity.x = 0;
+            this.velocity.y = 0;
+            this.jumps = 0;
+            this.x = this.startX;
+            this.y = this.startY;
+        }
+
         checkForHorizontalCollision() {
             blocos.forEach(item => {
                 if (this.collision(this, item)) {
@@ -149,6 +158,15 @@
                     if (this.velocity.x < 0) {
                         this.velocity.x = 0
                         this.x = item.x + item.size + 0.01
+            mortos.forEach(item => {
+                if (this.collision(this, item)) {
+                    if (this.velocity.x > 0) {
+                        this.velocity.x = 0
+                        this.x = item.x - this.width - 0.01
+                    }
+                    if (this.velocity.x < 0) {
+                        this.velocity.x = 0
+                        this.x = item.x + item.width + 0.01
                     }
                 }
             })
@@ -171,6 +189,12 @@
                         this.velocity.y = 0;
                         this.jumps = 0;
                         this.y = item.y - this.size - 0.01
+            mortos.forEach(item => {
+                if (this.collision(this, item)) {
+                    if (this.velocity.y > 0) {
+                        this.velocity.y = 0;
+                        this.jumps = 0;
+                        this.y = item.y - this.height - 0.01
                     }
                     if (this.velocity.y < 0) {
                         this.velocity.y = 0
@@ -191,9 +215,24 @@
         }
     }
 
+    class Morto {
+        constructor(x, y, width, height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        }
+
+        draw() {
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+    }
+
     const player = new Personagem();
     const fincos = [];
     const blocos = [];
+    const mortos = [];
     const bandeira = new Flag();
     const movimentos = {
         left: false,
@@ -210,7 +249,7 @@
 
         fincos.forEach(x => x.update());
         blocos.forEach(x => x.draw());
-        
+        mortos.forEach(x => x.draw());
         bandeira.draw();
         player.update()
 

@@ -66,6 +66,40 @@
         draw() {
             ctx.fillStyle = "blue";
             ctx.fillRect(this.x, this.y, this.size, this.size);
+    class Flag {
+        constructor() {
+            this.x = undefined;
+            this.y = undefined;
+        }
+
+        setPosition(x, y) {
+            this.x = x;
+            this.y = y;
+        }
+
+        drawFlag(positionY) {
+            const rightBorder = this.x + sizeTile - 2.5
+            ctx.beginPath();
+            ctx.moveTo(rightBorder, positionY);
+            ctx.lineTo(this.x, positionY + sizeTile / 2);
+            ctx.lineTo(rightBorder, positionY + sizeTile)
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        drawPole() {
+            const rightBorder = this.x + sizeTile - 2.5
+            ctx.fillRect(rightBorder, this.y, 5, sizeTile * 2);
+            ctx.strokeRect(rightBorder, this.y, 5, sizeTile * 2);
+        }
+
+        draw() {
+            if (this.x && this.y) {
+                ctx.fillStyle = "green";
+                ctx.strokeStyle = "black";
+                this.drawFlag(this.y);
+                this.drawPole();
+            }
         }
     }
 
@@ -160,6 +194,7 @@
     const player = new Personagem();
     const fincos = [];
     const blocos = [];
+    const bandeira = new Flag();
     const movimentos = {
         left: false,
         right: false,
@@ -173,9 +208,10 @@
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        fincos.forEach(x => x.draw());
+        fincos.forEach(x => x.update());
         blocos.forEach(x => x.draw());
         
+        bandeira.draw();
         player.update()
 
         player.velocity.x = 0;
@@ -202,6 +238,8 @@
                     blocos.push(new Bloco(x, y))
                 else if (item == 2)
                     fincos.push(new Finco(x, y))
+                else if (item == 3)
+                    bandeira.setPosition(x, y);
             }
         }
 

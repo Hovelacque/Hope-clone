@@ -5,13 +5,20 @@
 </style>
 
 <canvas></canvas>
+<input type="file" id="fileInput" accept=".js">
 
+<script src="mapa1.js"></script>
 <script>
-    const canvas = document.querySelector('canvas');
+    const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext('2d');
 
-    canvas.width = 1024;
-    canvas.height = 756;
+    const sizeTile = 20;
+    const colunas = 30;
+    const linhas = 20;
+
+    //tiles:30x20 | tile:16x16
+    canvas.width = colunas * sizeTile; //480
+    canvas.height = linhas * sizeTile; //320
 
     class Finco {
         constructor(x, y) {
@@ -20,162 +27,375 @@
         }
 
         draw() {
-            ctx.fillStyle = 'black';
-            ctx.fillRect(this.x, this.y, 5, 5);
-            ctx.fillRect(this.x - 5, this.y + 5, 15, 5);
-            ctx.fillRect(this.x - 10, this.y + 10, 25, 5);
-            ctx.fillRect(this.x - 15, this.y + 15, 35, 5);
-            ctx.fillRect(this.x - 20, this.y + 20, 45, 5);
+            ctx.fillStyle = 'red';
+            ctx.fillRect(this.x + sizeTile / 2 - sizeTile / 8, this.y, sizeTile / 4, sizeTile / 4);
+            ctx.fillRect(this.x + sizeTile / 4, this.y + sizeTile / 4, sizeTile - sizeTile / 2, sizeTile / 4);
+            ctx.fillRect(this.x + sizeTile / 8, this.y + sizeTile / 2, sizeTile - sizeTile / 4, sizeTile / 4);
+            ctx.fillRect(this.x, this.y + sizeTile - sizeTile / 4, sizeTile, sizeTile / 4);
+        }
+
+        update() {
+            this.draw()
+
+            if (
+                this.collision(this.x + sizeTile / 2 - sizeTile / 8, this.y, sizeTile / 4, sizeTile / 4) ||
+                this.collision(this.x + sizeTile / 4, this.y + sizeTile / 4, sizeTile - sizeTile / 2, sizeTile / 4) ||
+                this.collision(this.x + sizeTile / 8, this.y + sizeTile / 2, sizeTile - sizeTile / 4, sizeTile / 4) ||
+                this.collision(this.x, this.y + sizeTile - sizeTile / 4, sizeTile, sizeTile / 4)
+            ) {
+                player.die();
+            }
+        }
+
+        collision(x, y, width, height) {
+            return (
+                player.y + player.height >= y &&
+                player.y <= y + height &&
+                player.x <= x + width &&
+                player.x + player.width >= x
+            );
         }
     }
 
-    class Morto {
+    class Bloco {
         constructor(x, y) {
             this.x = x;
             this.y = y;
-            this.size = 50;
+            this.width = sizeTile;
+            this.height = sizeTile;
         }
 
         draw() {
-            ctx.fillStyle = 'gray';
-            ctx.fillRect(this.x, this.y, this.size, this.size);
+            ctx.fillStyle = "blue";
+            ctx.fillRect(this.x, this.y, this.width, this.height);
         }
     }
 
-    class Personagem {
+    class Flag {
         constructor() {
-            this.baseX = 10;
-            this.x = this.baseX;
-            this.size = 50;
-            this.baseY = 535;
-            this.y = this.baseY;
-            this.speed = 10;
+            this.x = undefined;
+            this.y = undefined;
+            this.win = false;
+            this.flagPosition = undefined;
+        }
 
-            this.lefting = false;
-            this.righting = false;
-            this.jumping = false;
+        setPosition(x, y) {
+            this.x = x;
+            this.y = y;
+            this.flagPosition = y + sizeTile;
+        }
 
-            this.releaseJump = true;
-            this.elapsedJumping = 0;
-            this.timeJump = 10;
-            this.heightJump = 100;
+        drawFlag(positionY) {
+            const rightBorder = this.x + sizeTile - 2.5
+            ctx.beginPath();
+            ctx.moveTo(rightBorder, positionY);
+            ctx.lineTo(this.x, positionY + sizeTile / 2);
+            ctx.lineTo(rightBorder, positionY + sizeTile)
+            ctx.fill();
+            ctx.stroke();
+        }
+
+        drawPole() {
+            const rightBorder = this.x + sizeTile - 2.5
+            ctx.fillRect(rightBorder, this.y, 5, sizeTile * 2);
+            ctx.strokeRect(rightBorder, this.y, 5, sizeTile * 2);
         }
 
         draw() {
-            ctx.fillStyle = 'red';
-            ctx.fillRect(this.x, this.y, this.size, this.size);
-        }
+            if (this.x && this.y) {
 
-        jump() {
-            if (this.releaseJump && this.y == this.baseY) {
-                this.jumping = true;
-                this.releaseJump = false;
+                ctx.fillStyle = "white";
+                ctx.fillRect(this.x, this.y, sizeTile, sizeTile * 2);
+
+                ctx.fillStyle = "green";
+                ctx.strokeStyle = "black";
+                this.drawFlag(this.flagPosition);
+                this.drawPole();
             }
         }
 
         update() {
             this.draw();
 
-            if (this.lefting && this.x > 0)
-                this.x -= this.speed
-            if (this.righting && this.x < (canvas.width - this.size))
-                this.x += this.speed
-            if (this.jumping) {
-                if (this.elapsedJumping < this.timeJump) {
-                    if (this.y > this.baseY - this.heightJump)
-                        this.y -= this.heightJump / this.timeJump;
-                    this.elapsedJumping++;
-                }
+            if (this.win) {
+                if (this.flagPosition > this.y)
+                    this.flagPosition--;
                 else
-                    this.jumping = false
+                    gameover = true;
             }
-            else {
-                if (this.elapsedJumping <= this.timeJump) {
-                    if (this.y < this.baseY) {
-                        this.y += this.heightJump / this.timeJump;
-                        this.elapsedJumping--;
+
+            if (this.collision(this.x, this.y, sizeTile, sizeTile * 2))
+                this.win = true;
+        }
+
+        collision(x, y, width, height) {
+            return (
+                player.y + player.height >= y &&
+                player.y <= y + height &&
+                player.x <= x + width &&
+                player.x + player.width >= x
+            );
+        }
+    }
+
+    class Personagem {
+        constructor() {
+            this.startX = 10;
+            this.x = this.startX;
+            this.height = sizeTile * 1.5;
+            this.width = sizeTile * 1.5;
+            this.startY = canvas.height - this.height;
+            this.y = this.startY;
+            this.jumps = 0;
+            this.velocity = {
+                x: 0,
+                y: 0
+            }
+        }
+
+        draw() {
+            ctx.fillStyle = 'green';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+
+        update() {
+            this.draw();
+
+            this.x += this.velocity.x;
+
+            this.checkForHorizontalCollision();
+            this.appluGravity();
+            this.checkForVerticalCollision()
+        }
+
+        jump() {
+            if (this.jumps < 2) {
+                this.velocity.y = -sizeTile / 2
+                this.jumps++;
+            }
+        }
+
+        reset() {
+            this.velocity.x = 0;
+            this.velocity.y = 0;
+            this.jumps = 0;
+            this.x = this.startX;
+            this.y = this.startY;
+        }
+
+        die() {
+            mortos.push(new Morto(this.x, this.y, this.width, this.height));
+            this.reset()
+        }
+
+        checkForHorizontalCollision() {
+            blocos.forEach(item => {
+                if (this.collision(this, item)) {
+                    if (this.velocity.x > 0) {
+                        this.velocity.x = 0
+                        this.x = item.x - this.width - 0.01
+                    }
+                    if (this.velocity.x < 0) {
+                        this.velocity.x = 0
+                        this.x = item.x + item.width + 0.01
                     }
                 }
+            })
+            mortos.forEach(item => {
+                if (this.collision(this, item)) {
+                    if (this.velocity.x > 0) {
+                        this.velocity.x = 0
+                        this.x = item.x - this.width - 0.01
+                    }
+                    if (this.velocity.x < 0) {
+                        this.velocity.x = 0
+                        this.x = item.x + item.width + 0.01
+                    }
+                }
+            })
+        }
 
-
+        appluGravity() {
+            this.y += this.velocity.y;
+            if (this.y + this.height + this.velocity.y <= canvas.height)
+                this.velocity.y += gravity;
+            else {
+                this.jumps = 0;
+                this.velocity.y = 0
             }
+        }
 
+        checkForVerticalCollision() {
+            blocos.forEach(item => {
+                if (this.collision(this, item)) {
+                    if (this.velocity.y > 0) {
+                        this.velocity.y = 0;
+                        this.jumps = 0;
+                        this.y = item.y - this.height - 0.01
+                    }
+                    if (this.velocity.y < 0) {
+                        this.velocity.y = 0
+                        this.y = item.y + item.height + 0.01
+                    }
+                }
+            })
+            mortos.forEach(item => {
+                if (this.collision(this, item)) {
+                    if (this.velocity.y > 0) {
+                        this.velocity.y = 0;
+                        this.jumps = 0;
+                        this.y = item.y - this.height - 0.01
+                    }
+                    if (this.velocity.y < 0) {
+                        this.velocity.y = 0
+                        this.jumps = 0;
+                        this.y = item.y + item.height + 0.01
+                    }
+                }
+            })
+        }
+
+        collision(object1, object2) {
+            return (
+                object1.y + object1.height >= object2.y &&
+                object1.y <= object2.y + object2.height &&
+                object1.x <= object2.x + object2.width &&
+                object1.x + object1.width >= object2.x
+            );
         }
     }
 
-    const mortos = [];
-    const p = new Personagem();
-    const fincos = [
-        new Finco(canvas.width / 2 - 90, 560),
-        new Finco(canvas.width / 2, 560),
-        new Finco(canvas.width / 2 + 40, 560),
-        new Finco(canvas.width / 2 + 80, 560)
-    ];
+    class Morto {
+        constructor(x, y, width, height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        }
+
+        draw() {
+            ctx.fillStyle = 'gray';
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+    }
+
+    const player = new Personagem();
+    let fincos = [];
+    let blocos = [];
+    let mortos = [];
+    const bandeira = new Flag();
+    const movimentos = {
+        left: false,
+        right: false,
+        jump: false
+    }
+    const gravity = 0.5;
+    let gameover = false;
 
     function animate() {
-        requestAnimationFrame(animate);
+        if (!gameover)
+            requestAnimationFrame(animate)
 
-        ctx.fillStyle = 'white';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (!bandeira.win) {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        ctx.beginPath()
-        ctx.moveTo(0, 600);
-        ctx.strokeStyle = "green";
-        ctx.lineWidth = 30;
-        ctx.lineTo(canvas.width, 600);
-        ctx.stroke();
+            fincos.forEach(x => x.update());
+            blocos.forEach(x => x.draw());
+            mortos.forEach(x => x.draw());
+            player.update()
 
+            player.velocity.x = 0;
+            if (movimentos.left && player.x > 0)
+                player.velocity.x = -sizeTile / 2
+            else if (
+                movimentos.right &&
+                (player.x + player.width < canvas.width)
+            )
+                player.velocity.x = sizeTile / 2
+        }
 
-        mortos.forEach(corpo => {
-            if (p.x + p.size >= corpo.x &&
-                p.x <= corpo.x + corpo.size &&
-                p.y + p.size >= corpo.y &&
-                p.y <= corpo.y + corpo.size
-            ) {
-                p.lefting = false;
-                p.righting = false;
-            }
-
-
-            corpo.draw()
-        });
-
-        p.update()
-
-        fincos.forEach(x => x.draw());
+        bandeira.update();
     }
 
-    animate();
+    function startMap(newMapa) {
+        if (!newMapa)
+            return;
 
-    window.addEventListener('keydown', (e) => {
-        switch (event.code) {
-            case "ArrowLeft":
-                p.lefting = true;
-                break;
-            case "ArrowRight":
-                p.righting = true;
-                break;
-            case "ArrowUp":
-                p.jump()
-                break;
-            case "Space":
-                mortos.push(new Morto(p.x, p.y))
-                p.x = p.baseX;
-                p.y = p.baseY;
-                break;
+        player.reset();
+        blocos = [];
+        fincos = [];
+        mortos = [];
+
+        for (let i = 0; i < newMapa.length; i++) {
+            let linha = newMapa[i];
+            for (let j = 0; j < linha.length; j++) {
+                const x = j * sizeTile;
+                const y = i * sizeTile;
+                const item = linha[j];
+                if (item == 1)
+                    blocos.push(new Bloco(x, y))
+                else if (item == 2)
+                    fincos.push(new Finco(x, y))
+                else if (item == 3)
+                    bandeira.setPosition(x, y);
+            }
         }
-    })
-    window.addEventListener('keyup', (e) => {
-        switch (event.key) {
-            case "ArrowLeft":
-                p.lefting = false;
-                break;
-            case "ArrowRight":
-                p.righting = false;
-                break;
-            case "ArrowUp":
-                p.releaseJump = true;
-                break;
-        }
-    })
+
+        window.addEventListener('keydown', (e) => {
+            switch (event.code) {
+                case "ArrowLeft":
+                    movimentos.left = true;
+                    break;
+                case "ArrowRight":
+                    movimentos.right = true;
+                    break;
+                case "ArrowUp":
+                    player.jump();
+                    break;
+                case "KeyS":
+                    if (mortos.length > 0)
+                        mortos.splice(mortos.length - 1, 1)
+                    break;
+                case "KeyA":
+                    if (mortos.length > 0)
+                        mortos.splice(0, 1)
+                    break;
+            }
+        })
+        window.addEventListener('keyup', (e) => {
+            switch (event.key) {
+                case "ArrowLeft":
+                    movimentos.left = false;
+                    break;
+                case "ArrowRight":
+                    movimentos.right = false;
+                    break;
+            }
+        })
+
+
+        gameover = false;
+        animate();
+    }
+
+    const upload = document.getElementById('fileInput');
+    if (upload) {
+        upload.addEventListener('change', function () {
+            if (upload.files.length > 0) {
+                var reader = new FileReader();
+                reader.addEventListener('load', function () {
+                    const matrizJson = reader.result.replace('const mapa = ', '').replace(';', '')
+                    var result = JSON.parse(matrizJson);
+                    startMap(result)
+                    upload.value = '';
+                });
+
+                reader.readAsText(upload.files[0]); // Read the uploaded file
+            }
+        });
+    }
+
+
+    startMap(mapa)
 </script>

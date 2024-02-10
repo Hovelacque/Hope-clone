@@ -28,16 +28,33 @@
 
     class Fundo {
         constructor() {
-            this.matriz = [];
-
-            // for (let i = 0; i < linhas; i++) {
-            //     let linha = []
-            //     for (let j = 0; j < colunas; j++) {
-            //         linha.push(0);
-            //     }
-            //     this.matriz.push([...linha]);
-            // }
             this.matriz = mapa;
+            this.posicaoBandeira = {
+                flag: {
+                    x: undefined,
+                    y: undefined
+                },
+                pole: {
+                    x: undefined,
+                    y: undefined
+                }
+            }
+            this.mapeiaBandeira();
+        }
+
+        mapeiaBandeira() {
+            this.matriz.forEach((linha, i) => {
+                linha.forEach((item, j) => {
+                    if (item == 3) {
+                        this.posicaoBandeira.pole.x = i;
+                        this.posicaoBandeira.pole.y = j;
+                    }
+                    if (item == 4) {
+                        this.posicaoBandeira.flag.x = i;
+                        this.posicaoBandeira.flag.y = j;
+                    }
+                })
+            });
         }
 
         isMouseOver(x, y) {
@@ -46,6 +63,38 @@
                 return true;
             else
                 return false;
+        }
+
+        retiraBandeira() {
+            if (this.posicaoBandeira.flag.x != undefined) {
+                const flag = this.posicaoBandeira.flag;
+                const pole = this.posicaoBandeira.pole;
+
+                this.matriz[flag.x][flag.y] = 0;
+                this.matriz[pole.x][pole.y] = 0;
+
+                this.posicaoBandeira.flag = {
+                    x: undefined,
+                    y: undefined
+                };
+                this.posicaoBandeira.pole = {
+                    x: undefined,
+                    y: undefined
+                };
+            }
+        }
+
+        colocaBandeira(j, i, i2) {
+            this.posicaoBandeira.flag = {
+                x: i,
+                y: j
+            }
+            this.posicaoBandeira.pole = {
+                x: i2,
+                y: j
+            }
+            this.matriz[i][j] = 4;
+            this.matriz[i2][j] = 3;
         }
 
         draw() {
@@ -80,6 +129,16 @@
                         ctx.lineTo(x + sizeTile, y + sizeTile);
                         ctx.fill();
                     }
+                    else if (item == 3 || item == 4) {
+                        ctx.fillStyle = mouseFocus ? "rgba(0,200,0,0.5)" : "green";
+                        ctx.fillRect(x, y, sizeTile, sizeTile)
+                    }
+
+                    if (mouse.acao && mouseFocus &&
+                        (this.matriz[i][j] == 3 || this.matriz[i][j] == 4) //apagou a bandeira
+                    )
+                        this.retiraBandeira();
+
 
                     if (mouse.acao == "apagar" && mouseFocus)
                         this.matriz[i][j] = 0
@@ -87,22 +146,16 @@
                         this.matriz[i][j] = 1
                     else if (mouse.acao == "finco" && mouseFocus)
                         this.matriz[i][j] = 2
+                    else if (mouse.acao == "bandeira" && mouseFocus) {
+                        this.retiraBandeira();
+
+                        if (i > 0)
+                            this.colocaBandeira(j, i - 1, i)
+                        else
+                            this.colocaBandeira(j, i, i + 1)
+                    }
                 }
             }
-
-            // ctx.strokeStyle = "white";
-            // for (let y = 0; y < linhas; y++) {
-            //     ctx.beginPath();
-            //     ctx.moveTo(0, y * sizeTile);
-            //     ctx.lineTo(canvas.width, y * sizeTile);
-            //     ctx.stroke();
-            // }
-            // for (let x = 0; x < colunas; x++) {
-            //     ctx.beginPath();
-            //     ctx.moveTo(x * sizeTile, 0);
-            //     ctx.lineTo(x * sizeTile, canvas.height);
-            //     ctx.stroke();
-            // }
         }
     }
 
@@ -166,6 +219,9 @@
                 break;
             case "KeyD":
                 mouse.acao = "finco";
+                break;
+            case "KeyF":
+                mouse.acao = "bandeira";
                 break;
         }
     })

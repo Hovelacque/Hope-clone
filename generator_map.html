@@ -8,7 +8,6 @@
 <button onclick="download()">download</button>
 <input type="file" id="fileInput" accept=".js">
 
-<script src="mapa1.js"></script>
 <script>
     const canvas = document.querySelector("canvas");
     const ctx = canvas.getContext('2d');
@@ -28,7 +27,27 @@
     }
 
     class Fundo {
-        constructor() { }
+        constructor() {
+            this.matriz = [];
+
+            for (let i = 0; i < linhas; i++) {
+                const linha = []
+                for (let j = 0; j < colunas; j++)
+                    linha.push(0)
+                this.matriz.push(linha);
+            }
+
+            this.posicaoBandeira = {
+                flag: {
+                    x: undefined,
+                    y: undefined
+                },
+                pole: {
+                    x: undefined,
+                    y: undefined
+                }
+            }
+        }
 
         init(mapa) {
             this.matriz = mapa;
@@ -235,8 +254,8 @@
             if (upload.files.length > 0) {
                 var reader = new FileReader();
                 reader.addEventListener('load', function () {
-                    const matrizJson = reader.result.replace('const mapa = ','').replace(';','')
-                    var result = JSON.parse(matrizJson); 
+                    const matrizJson = reader.result.replace('const mapa = ', '').replace(';', '')
+                    var result = JSON.parse(matrizJson);
                     fundo.init(result);
                     upload.value = '';
                 });
@@ -258,10 +277,5 @@
         document.body.removeChild(element);
     }
 
-    function start() {
-        fundo.init(mapa)
-        animate();
-    }
-
-    start();
+    animate();
 </script>

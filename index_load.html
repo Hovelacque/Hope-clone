@@ -74,11 +74,14 @@
         constructor() {
             this.x = undefined;
             this.y = undefined;
+            this.win = false;
+            this.flagPosition = undefined;
         }
 
         setPosition(x, y) {
             this.x = x;
             this.y = y;
+            this.flagPosition = y + sizeTile;
         }
 
         drawFlag(positionY) {
@@ -99,11 +102,38 @@
 
         draw() {
             if (this.x && this.y) {
+
+                ctx.fillStyle = "white";
+                ctx.fillRect(this.x, this.y, sizeTile, sizeTile * 2);
+
                 ctx.fillStyle = "green";
                 ctx.strokeStyle = "black";
-                this.drawFlag(this.y);
+                this.drawFlag(this.flagPosition);
                 this.drawPole();
             }
+        }
+
+        update() {
+            this.draw();
+
+            if (this.win) {
+                if (this.flagPosition > this.y)
+                    this.flagPosition--;
+                else
+                    gameover = true;
+            }
+
+            if (this.collision(this.x, this.y, sizeTile, sizeTile * 2))
+                this.win = true;
+        }
+
+        collision(x, y, width, height) {
+            return (
+                player.y + player.height >= y &&
+                player.y <= y + height &&
+                player.x <= x + width &&
+                player.x + player.width >= x
+            );
         }
     }
 
@@ -255,28 +285,32 @@
         jump: false
     }
     const gravity = 0.5;
+    let gameover = false;
 
     function animate() {
-        requestAnimationFrame(animate)
+        if (!gameover)
+            requestAnimationFrame(animate)
 
-        ctx.fillStyle = "white";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        if (!bandeira.win) {
+            ctx.fillStyle = "white";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        fincos.forEach(x => x.update());
-        blocos.forEach(x => x.draw());
-        mortos.forEach(x => x.draw());
-        bandeira.draw();
+            fincos.forEach(x => x.update());
+            blocos.forEach(x => x.draw());
+            mortos.forEach(x => x.draw());
+            player.update()
 
-        player.update()
-
-        player.velocity.x = 0;
-        if (movimentos.left && player.x > 0)
-            player.velocity.x = -sizeTile / 2
-        else if (
-            movimentos.right &&
-            (player.x + player.width < canvas.width)
-        )
-            player.velocity.x = sizeTile / 2
+            player.velocity.x = 0;
+            if (movimentos.left && player.x > 0)
+                player.velocity.x = -sizeTile / 2
+            else if (
+                movimentos.right &&
+                (player.x + player.width < canvas.width)
+            )
+                player.velocity.x = sizeTile / 2
+        }
+        
+        bandeira.update();
     }
 
     function startMap() {
@@ -322,6 +356,7 @@
             }
         })
 
+        gameover = false;
         animate();
     }
 
